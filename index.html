@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pila Money</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 450px;
+            background: #ffffff;
+            padding: 30px;
+            margin: 40px auto;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .battery {
+            width: 100px;
+            height: 200px;
+            border-radius: 12px;
+            position: relative;
+            margin: 30px auto;
+            overflow: hidden;
+            background: linear-gradient(135deg, #ccc, #ddd);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            animation: pulse 2s infinite alternate;
+        }
+        .battery-level {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(135deg, #4caf50, #66bb6a);
+            height: 0;
+            transition: height 1s ease-in-out;
+        }
+        .wallet {
+            margin-top: 30px;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            background-color: #ffeb3b;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: bounce 1.5s infinite;
+        }
+        .wallet.secondary {
+            background-color: #4caf50;
+            color: white;
+        }
+        button {
+            margin-top: 15px;
+            padding: 12px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .vibrate {
+            animation: vibrate 0.3s infinite;
+        }
+        @keyframes vibrate {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            50% { transform: translateX(4px); }
+            75% { transform: translateX(-4px); }
+            100% { transform: translateX(4px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Pila Money</h2>
+        <p>Recluta usuarios y llena tu batería.</p>
+        
+        <div class="battery">
+            <div class="battery-level" id="batteryLevel"></div>
+        </div>
+        
+        <p>Usuarios reclutados: <span id="userCount">0</span> / 10</p>
+        
+        <button id="addUser" disabled>Añadir Usuario</button>
+        
+        <!-- Wallet for invited users' earnings -->
+        <div class="wallet">Ganancias: <span id="walletBalance">$0</span> DOP</div>
+        
+        <!-- Wallet for recharge balance -->
+        <div class="wallet secondary">Fondos de compras: <span id="rechargeBalance">$0</span> DOP</div>
+        
+        <button id="withdraw" onclick="submitWithdraw()">Retirar Fondos</button>
+        <button id="recharge">Recargar Fondos</button>
+        
+        <div class="recharge-options" id="rechargeOptions">
+            <button onclick="recharge(500)">Recargar $500</button>
+            <button onclick="recharge(1000)">Recargar $1,000</button>
+            <button onclick="recharge(5000)">Recargar $5,000</button>
+        </div>
+        
+        <div class="invest-section" id="investSection" style="display:none;">
+            <button id="buyBattery" onclick="buyBattery()">Comprar Pila</button>
+        </div>
+    </div>
+
+    <script>
+        let users = 0;
+        let userBalance = 0;
+        let rechargeBalance = 0;
+        const maxUsers = 10;
+        const rewardPerUser = 500;
+        let hasRecharged = false;
+
+        const userCountElement = document.getElementById("userCount");
+        const walletBalanceElement = document.getElementById("walletBalance");
+        const rechargeBalanceElement = document.getElementById("rechargeBalance");
+        const batteryLevelElement = document.getElementById("batteryLevel");
+        const addUserButton = document.getElementById("addUser");
+        const rechargeButton = document.getElementById("recharge");
+        const rechargeOptions = document.getElementById("rechargeOptions");
+        const investSection = document.getElementById("investSection");
+
+        addUserButton.addEventListener("click", function() {
+            if (!hasRecharged) {
+                alert("Debes comprar pila antes de añadir usuarios.");
+            } else {
+                if (users < maxUsers) {
+                    users++;
+                    userBalance = users * rewardPerUser;
+                    userCountElement.textContent = users;
+                    walletBalanceElement.textContent = "$" + userBalance;
+                    batteryLevelElement.style.height = (users / maxUsers) * 100 + "%";
+                }
+            }
+        });
+
+        rechargeButton.addEventListener("click", function() {
+            rechargeOptions.style.display = 'block';
+        });
+
+        function recharge(amount) {
+            rechargeBalance += amount;
+            rechargeBalanceElement.textContent = "$" + rechargeBalance;
+            hasRecharged = true;
+            rechargeOptions.style.display = 'none';
+            investSection.style.display = 'block';
+            addUserButton.disabled = false;
+        }
+
+        function buyBattery() {
+            batteryLevelElement.classList.add("vibrate");
+            batteryLevelElement.style.height = "100%";
+            
+            setTimeout(() => {
+                batteryLevelElement.style.height = "0";
+                batteryLevelElement.classList.remove("vibrate");
+
+                // Resetear el saldo de Fondos de compras al comprar pila
+                rechargeBalance = 0;
+                rechargeBalanceElement.textContent = "$" + rechargeBalance;
+
+            }, 3000);
+        }
+
+        function submitWithdraw() {
+            alert("Solicitud de retiro enviada.");
+            // Reset balances and battery after submitting withdraw form
+            rechargeBalance = 0;
+            userBalance = 0;
+            rechargeBalanceElement.textContent = "$" + rechargeBalance;
+            walletBalanceElement.textContent = "$" + userBalance;
+            batteryLevelElement.style.height = "0";  // Reset battery level
+        }
+    </script>
+</body>
+</html>
